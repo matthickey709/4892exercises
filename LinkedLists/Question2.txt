@@ -1,0 +1,21 @@
+Modify the pseudocode for vector instead of linked list.
+
+
+for each element in vector:
+    if element is divisible by 10:
+        erase current element (which means remove the current element, and shift
+                                all elements around)
+
+
+
+
+
+
+
+
+Algorithmic complexity:
+    iterating through a vector of size n is an order n operation. checking if it is
+    divisible by 10 is an order 1 operation. if this check passes, the erase operation
+    is an order n operation because it must shift order n elements around following
+    the deletion of the element. This makes the overall complexity of the algorithm
+    order n^2.

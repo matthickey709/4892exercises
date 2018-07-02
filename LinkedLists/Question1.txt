@@ -1,0 +1,19 @@
+Write the pseudocode for an algorithm that will remove all of the numbers from a
+list that are multiples of 10. Analyze its asymptotic complexity.
+
+
+
+while current element is not sentinel:
+    if current element is divisible by 10:
+        erase current element (which means modifying a next & previous pointer,
+                                and freeing memory allocated by the current element)
+    else:
+        set current element to next
+
+
+
+
+Algorithmic complexity:
+    going through a linked list of n elements is an order n operation. checking
+    if it is divisible by 10 is an order 1 operation. erasing an element completes
+    several order 1 operations, so overall the algorithm is of order n.

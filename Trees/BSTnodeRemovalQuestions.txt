@@ -1,0 +1,10 @@
+1. When we fail to find a value with the search() or remove() methods of a BST,
+    we do not need to look elsewhere in the tree for the value. This is due to
+    the nature of BSTs. By finding an empty node, it means that the value is nowhere
+    in the tree. This is because each time you eliminate a subtree, it knows that
+    the value you are looking for is NOT in the other subtree, so if the value
+    isn't found in the remaining subtree, the value is not in the tree at all.
+
+2. I have lots of friends mind you! (i swear)
+
+3. 

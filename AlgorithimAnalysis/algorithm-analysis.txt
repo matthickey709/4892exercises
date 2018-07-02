@@ -1,0 +1,47 @@
+Exercise 1:
+    mxn and nxm matrix multiplication
+    assume m is rows in first matrix and columns in second matrix
+    and n is columns in first matrix and rows in second matrix
+
+    Pseudo-code:
+        for i in range(0,m):
+            for j in range(0,m):
+                sum = 0
+                for k in range(0,n):
+                    sum += m1(i,k) * m2(k,i+j)
+                result(i,j) = sum
+    End Pseudo-code
+
+    The exact number of operations that will be performed is m^2 * n.
+    This means that the run time complexity would be n^3 if n=m.
+
+    Using a c value of 6 and an n0 value of 6, it can be demonstrated that
+    the runtime is O(n^3) because the number of operations (complexity) is upper bound by
+    6n^3. Using a c value of 0.3 and an n0 value of 4, it can be demonstrated that
+    the runtime is also Omega(n^3) because the complexity has a lower bound of
+    0.3n^3. This means that the runtime is Theta(n^3).
+
+Exercise 2:
+
+    recursive(n):
+        if n <= 1:
+            return 1
+        else:
+            return n * recursive(n-1)
+
+    The time complexity is going to be 2 operations for every time the function is called.
+    However, one of these operations involves calling the function again, which is another 2
+    operations (2n) which means the time complexity is linear.
+
+
+    iterative(n):
+        answer = 1
+        for i in range(0,n):
+            answer *= i+1
+        return answer
+
+    The time complexity involves 3 operations plus n operations, which makes it linear.
+
+    Even though the recursive implementation is more elegant, I think computers are
+    more optimized to handle iteration than recursion, so for equal input values,
+    the iterative approach will be faster.

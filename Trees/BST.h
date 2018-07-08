@@ -19,11 +19,21 @@
 #include <functional>   // std::function
 #include <memory>       // std::unique_ptr
 #include <iostream>     // std::cout
+#include <stack>		// std::stack
+
 
 template<typename T, typename Comparator = std::less<T>>
 class BinarySearchTree
 {
 public:
+	// Types of traversal for BSTs
+	enum class Traversal {
+			PreOrder, 	// visit node before children
+			InOrder,  	// visit left, then root, then right (for BST this is least->greatest)
+			PostOrder	// visit node after children
+	};
+
+
 	//! Does this tree contain the given value?
 	bool contains(const T &value)
 	{
@@ -102,7 +112,7 @@ public:
 	void printDot(std::ostream &o) const {
 		o << "digraph G {" << '\n';
 		root_->printDot(o);
-		o << "}";
+		o << "}\n";
 	}
 
 private:
@@ -110,7 +120,7 @@ private:
 	{
 		// Did you know that structs can have methods too?
 		Node(T &&value)
-			: element_(value), count_(1), left_(nullptr), right_(nullptr)
+			: element_(std::move(value)), count_(1), left_(nullptr), right_(nullptr)
 		{
 		}
 
@@ -137,6 +147,26 @@ private:
 
             return this->right_->max();
         }
+
+		/**
+ 		* Find the minimum node in a subtree and remove it, returning it by value.
+ 		*/
+		T takeMin() {
+			// if the tree goes at least a couple deeper
+			if (this->left_ and this->left_->left_) {
+				return this->left_->takeMin();
+			} else if (this->left_) {
+				// the node to the left is the min. save its value and delete
+				T temp = this->left_->element_;
+				this->left_.reset();
+				return temp;
+			} else {
+				std::cout << "Should never get here" << '\n';
+				return 0;
+			}
+		}
+
+
 		size_t maxDepth() const {
 
 			size_t leftDepth = 0, rightDepth = 0;
@@ -226,9 +256,18 @@ private:
 			return this->remove(value, node->left_);
 		} else if (compare_(node->element_, value)) {
 			return this->remove(value, node->right_);
+		} else if (node->count_ > 1) {
+			node->count_--;
+			return true;
 		} else if (node->left_ and node->right_) {
-			T minOfRight = node->right_->min();
-			this->remove(minOfRight, node->right_);
+			T minOfRight;
+			if (node->right_->left_)
+				minOfRight = node->right_->takeMin();
+			else
+			{
+				minOfRight = node->right_->element_;
+				this->remove(minOfRight, node->right_);
+			}
 			node->element_ = std::move(minOfRight);
 			return true;
 		} else {
@@ -237,13 +276,140 @@ private:
 		}
 	}
 
+	class Iterator {
+	public:
+		Iterator()
+			: current(nullptr), traversalType(Traversal::InOrder)
+		{
+
+		}
+
+
+		Iterator(Traversal t)
+			: traversalType(t)
+		{
+			// upon initialization, push a nullptr to the stack
+			nodeTracker.push(nullptr);
+
+		}
+
+		/**
+		 * The dereference operator.
+		 *
+		 * @returns   a reference to the "current" element
+		 */
+		const T& operator*() {
+			return current->element_;
+		}
+
+		/**
+		 * Pre-increment operator (i.e., `++i`).
+		 *
+		 * This method increments the iterator and then returns a
+		 * reference to the newly-incremented iterator.
+		 *
+		 * @returns   a reference to this iterator, after incrementing
+		 */
+		Iterator& operator++() {
+			nodeTracker.pop();
+			this->current = nodeTracker.top();
+
+			return *this;
+		}
+
+		/**
+		 * Post-increment operator (i.e., `i++`).
+		 *
+		 * This method returns a copy of this iterator as it currently
+		 * is (i.e., pointing where it currently points) and _then_
+		 * increments itself.
+		 *
+		 * @param     ignored   this is only used to distinguish the two
+		 *                      increment operators (pre- and post-)
+		 *                      from each other: its value should be
+		 *                      ignored
+		 *
+		 * @returns   an iterator to the previously-current element
+		 */
+		Iterator operator++(int ignored) {
+			// hold a const_iterator of current element to be returned.
+			Iterator temp = *this;
+			nodeTracker.pop();
+			this->current = nodeTracker.top();
+			// return the previously current element (temp)
+			return temp;
+		}
+
+		void traverser(std::unique_ptr<Node> &n) {
+			if (!n) return;
+			// check the traversal type
+			if (traversalType == Traversal::PreOrder) {
+				traverser(n->right_);
+				traverser(n->left_);
+				nodeTracker.push(n.get());
+			} else if (traversalType == Traversal::PostOrder) {
+				nodeTracker.push(n.get());
+				traverser(n->right_);
+				traverser(n->left_);
+			} else {
+				traverser(n->right_);
+				nodeTracker.push(n.get());
+				traverser(n->left_);
+			}
+
+			// set current to top element of stack
+			this->current = nodeTracker.top();
+		}
+
+		//! Is this iterator pointing at the same place as another one?
+		bool operator== (const Iterator& other) const {
+			if (current == other.current) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		//! Is this iterator pointing at a different place from another?
+		bool operator!= (const Iterator& other) const {
+			if (current != other.current) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	private:
+		Node * current;
+		const Traversal traversalType;
+		std::stack<Node*> nodeTracker;
+	};
+
 	Comparator compare_;
 	std::unique_ptr<Node> root_;
-};
 
+public:
+	/**
+	 * Returns an iterator that can be used to traverse the tree in the given order.
+	 *
+	 * This iterator should visit every node in the tree exactly once, after which
+	 * it should test equal to the iterator returned from `end()`.
+	 */
+	Iterator begin(Traversal t) {
+		Iterator iter(t);
+		iter.traverser(this->root_);
+		return iter;
+	}
 
+	/**
+	 * The end of a tree traversal.
+	 *
+	 * The iterator returned by this method should be usable as the end-of-iteration
+	 * marker for any iterator on this tree, whether it was traversing the tree in
+	 * pre-, in- or post-order.
+	 */
+	Iterator end() {
+		Iterator iter;
+		return iter;
+	}
 
-struct Bar {
-	int height;
-	int weight;
 };

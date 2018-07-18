@@ -115,7 +115,7 @@ public:
 		o << "}\n";
 	}
 
-private:
+protected:
 	struct Node
 	{
 		// Did you know that structs can have methods too?
@@ -229,7 +229,7 @@ private:
 	 * @param   node       the root of the (sub-)tree being inserted into;
 	 *                     may be null if the (sub-)tree is empty
 	 */
-	void insert(T &&value, std::unique_ptr<Node> &node) {
+	virtual void insert(T &&value, std::unique_ptr<Node> &node) {
         // if the root is null, make a new node
         if (node == nullptr) {
             node.reset(new Node(std::move(value)));
@@ -412,4 +412,68 @@ public:
 		return iter;
 	}
 
+};
+
+template<typename T, typename Comparator = std::less<T>>
+class AVLTree: public BinarySearchTree<T, Comparator> {
+private:
+	struct AVLNode : public BinarySearchTree<T>::Node
+	{
+		AVLNode(T &&value)
+			: BinarySearchTree<T>::Node(std::move(value)), height_(0)
+		{
+		}
+
+
+
+		/**
+		 * Output information about this node in GraphViz DOT format.
+		 *
+		 * This will output information about this node
+		 * (with no graph-level decorations such as "digraph G {")
+		 * and recursively descend to its children.
+		 */
+		void printDot(std::ostream &o) const {
+			// Print the info about the node
+			o << this->element_ << " [ label = \"height_ " << this->height_ << ", value " << this->element_ << " \"];\n";
+			// Link to the children
+			if (this->left_)
+				o << this->element_ << " -> " << this->left_->element_ << " [ label = \"L\" ];\n";
+			if (this->right_)
+				o << this->element_ << " -> " << this->right_->element_ << " [ label = \"R\" ];\n";
+
+			if (this->left_)
+				this->left_->printDot(o);
+			if (this->right_)
+				this->right_->printDot(o);
+		}
+
+
+		size_t height_;
+	};
+
+	/**
+	 * Internal implementation of recursive insert.
+	 *
+	 * @param   value      the value to insert
+	 * @param   node       the root of the (sub-)tree being inserted into;
+	 *                     may be null if the (sub-)tree is empty
+	 */
+
+	void insert(T &&value, std::unique_ptr<typename BinarySearchTree<T>::Node> &node) override {
+        // if the root is null, make a new node
+        if (node == nullptr) {
+            node.reset(new AVLNode(std::move(value)));
+        } else if (this->compare_(value, node->element_)) {  // left side of tree
+            this->insert(std::move(value), node->left_);
+        } else if (this->compare_(node->element_, value)){  // left side of tree
+            this->insert(std::move(value), node->right_);
+        } else {
+			node->count_++;
+		}
+    }
+
+	void balance() {
+		// TODO: calling right and left rotation when finding unbalanced subtree
+	}
 };

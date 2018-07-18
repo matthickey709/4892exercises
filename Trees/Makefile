@@ -14,11 +14,11 @@
 
 CXXFLAGS=	-std=c++14
 
-all: bst-test
+all: avl-test
 clean:
 	rm -f *.o bst
 
-bst-test: bst-test.o
-	$(CXX) $(LDFLAGS) bst-test.o -o bst-test
+avl-test: avl-test.o
+	$(CXX) $(LDFLAGS) avl-test.o -o avl-test
 
 bst-test.o: BST.h

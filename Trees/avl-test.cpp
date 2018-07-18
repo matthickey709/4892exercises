@@ -21,34 +21,10 @@
 
 int main()
 {
-	BinarySearchTree<int> bst;
+	AVLTree<int> avl;
+	avl.insert(50);
 
-	bst.insert(6);
-	bst.insert(4);
-	bst.insert(2);
-	bst.insert(7);
-	bst.insert(9);
-	bst.insert(1);
-	bst.insert(3);
-	bst.insert(3);
-
-	std::cout << "min value: " << bst.min() << "\n";
-	std::cout << "max value: " << bst.max() << "\n";
-
-
-
-	bst.print();
-
-	std::cout << "maxDepth is" << bst.maxDepth() <<  '\n';
-
-
-	if (bst.contains(7))
-		std::cout << "ya boiii" << '\n';
-	if (!bst.contains(66))
-		std::cout << "no boiiiii" << '\n';
-
-
-	bst.printDot(std::cout);
+	avl.printDot(std::cout);
 
 	return 0;
 }
